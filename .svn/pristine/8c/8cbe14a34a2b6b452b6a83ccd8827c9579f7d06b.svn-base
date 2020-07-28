@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1,user-scalable=no">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black">
+		<title>设备列表</title>
+		<script src="http://libs.baidu.com/jquery/2.0.0/jquery.min.js"></script>
+	</head>
+	<body>
+	</body>
+	<script type="text/javascript">
+		function getQueryString(name) {
+			var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)", "i");
+			var r = window.location.search.substr(1).match(reg);
+			if(r != null) return unescape(r[2]);
+			return null;
+		}
+		$.ajax({
+			type:"get",
+			url:"http://39.104.99.181:8065/user/add",
+			async:true,
+			data:{
+				code: getQueryString('code')
+			},
+			success:function(message){
+				if(message.subscribe=='1'){
+					let openId = message.openid;
+					localStorage.setItem('openid', openId)
+					localStorage.setItem('carLockId', getQueryString('state'))
+					window.location.href = 'http://cloud.sokeed.com/mp/card/index.html?'+new Date().getTime()+'#/codeOrder'
+				}else{
+					window.location.href = 'follow.html'
+				}
+				
+			}
+		});
+	</script>
+
+</html>

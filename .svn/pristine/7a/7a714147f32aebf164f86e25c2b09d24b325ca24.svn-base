@@ -1,0 +1,803 @@
+<template>
+  <div class="hellohead">
+    <!-- <div id="allmap"></div> -->
+    <div class="hello losters">
+      <p class="png zg">
+        <!-- <img src="../../static/image/picu.png" alt=""> -->
+        <img :src="urll" />
+      </p>
+      <p class="mor">{{names}},您好！</p>
+      <p @click="saoyisao">
+        <img src="../../static/image/ma.png"
+             alt="">
+      </p>
+    </div>
+    <div class="inputBorder">
+      <div class="li">
+        <p>
+          <img src="../../static/image/fang.png"
+               alt="">
+        </p>
+        <input type="text"
+               v-model="value"
+               @input="changeList"
+               placeholder="请输入设备编号即可" />
+      </div>
+    </div>
+    <!-- <scroller :on-refresh="refresh" ref="my_scroller" style="top:205px"> -->
+    <ul>
+      <li v-for="(item,index) in deviceList"
+          :key='index'
+          @click="abc(item)">
+        <div><img src="../../static/image/jing.png"
+               alt=""
+               class="innerimg"></div>
+        <div>
+          <!-- <p>{{item.empty}}</p> -->
+          <p style="line-height:1.7rem;font-size:16px;">{{item.emptys}}</p>
+          <!-- <p style="display:block">{{changezhi(item.deviceId)}}</p> -->
+        </div>
+        <div v-if="pro==0"
+             class="api">{{item.empty}}</div>
+        <div v-if="pro==1"
+             class="no api">{{item.empty}}</div>
+        <div v-if="pro==2"
+             class="api">{{item.empty}}</div>
+
+        <div @click.stop="showClick(item)"><img src="../../static/image/deng.png"
+               alt=""
+               class="deleteimg"></div>
+        <div class="flexBoxBG cube"
+             v-show="bg"
+             v-bind:class="{animaBg:isAnima,unAnimaBg:isUnAnima}"
+             @click.stop="hideClick"></div>
+        <div class="flexBoxCT cube"
+             v-bind:class="{anima:isAnima,unAnima:isUnAnima}">
+          <!--<router-link :to="{path:'/select',query:{id:item}}"><p class="Feat">功能界面</p></router-link>-->
+          <p class="Feat dele"
+             @click.stop="dell(index)">删除</p>
+          <p class="Feat"
+             @click.stop="hideClick">取消</p>
+        </div>
+      </li>
+    </ul>
+    <!-- </scroller>   -->
+    <div class="positions"
+         v-show='po'>
+      <div class="box">
+        <p>真的要删除吗？</p>
+        <p>
+          <span @click="hideClickno">取消</span>
+          <span class="querenB"
+                @click="delec">确定</span>
+        </p>
+      </div>
+    </div>
+  </div>
+
+</template>
+<script src="https://res.wx.qq.com/open/js/jweixin-1.0.0.js" type="text/javascript" charset="utf-8"></script>
+<script>
+import Qs from 'qs'
+import axios from 'axios'
+// import wx from 'weixin-js-sdk'
+import { mapState, mapActions, mapGetters } from 'vuex'
+import { Loadmore, MessageBox } from 'mint-ui';
+export default {
+  name: 'equipitem',
+  data () {
+    return {
+      pro: '',
+      po: false,
+      bg: false,
+      urll: '',
+      isAnima: false,
+      isUnAnima: false,
+      names: '',
+      item: '',
+      value: '',
+      imgMy: './static/image/my.png',
+      deviceList: [],
+      wtime: ['', '', '', '', ''],
+      zong: [],
+      devol: [],
+      deviceLists: [],
+      math: '',
+      trueys: [],
+      infow: {
+        devLongitude: '',
+        devLatitude: '',
+
+      },
+      replace1: '',
+      replace2: '',
+      menga: '',
+      mengb: '',
+      infows: {
+        address: '',
+        number: ''
+      },
+      newdirectory: '',
+      psya: '',
+      list: [],
+      lnging: '',
+      laging: '',
+      arrs: []
+    }
+  },
+  created () {
+    let that = this;
+
+    // that.$store.dispatch('again')
+
+
+  },
+  // watch:{
+  //   messArray_get : function(val){
+  //         console.log(val)
+  //      }
+  // },
+
+  mounted: function () {
+    document.title = this.$route.meta.title;
+    let that = this;
+    that.wtime = [String(new Date().getFullYear()), String((new Date().getMonth() + 1) <= 9 ? '0' + (new Date().getMonth() + 1) : (new Date().getMonth() + 1)), String(new Date().getDate() <= 9 ? '0' + (new Date().getDate()) : (new Date().getDate())), String(new Date().getHours() <= 9 ? (new Date().getHours()) : (new Date().getHours())), String(new Date().getMinutes() <= 9 ? '0' + (new Date().getMinutes()) : (new Date().getMinutes()))];
+    that.searchclick()
+    that.$axios
+      .post(
+        that.httpUrl + "users/find",
+        that.$qs.stringify({
+          openid: localStorage.getItem('openid')
+        })
+      )
+      .then(res => {
+        console.log(res);
+        if (res.data.resCode == 0) {
+          that.urll = res.data.result.headimgurl
+          that.names = res.data.result.nickname
+        }
+      })
+  },
+  methods: {
+    // ...mapActions(['again']),
+    // changezhi(val){
+    //   console.log(val)
+    //   let that=this;
+
+    //     this.$axios
+    //     .post(
+    //     that.httpUrl+"Datapoints/getData",
+    //     this.$qs.stringify({
+    //         devId:val
+    //       })
+    //     )
+    //     .then(message => {
+
+    //       let messData=JSON.parse((message.data.errMsg).slice(6))
+    //       console.log(messData)
+    //       if(messData.errno==0){
+    //           for(let i=0;i<messData.data.datastreams.length;i++){
+    //             console.log(i)
+    //             if(messData.data.datastreams[i].id=='2003'){
+    //                that.lnging=(messData.data.datastreams[i].datapoints[0].value)/100000
+    //                if(that.lnging==0){
+    //                  that.lnging=120.2282128307
+    //                }
+    //             }
+    //             if(messData.data.datastreams[i].id=='2002'){
+    //                that.laging=(messData.data.datastreams[i].datapoints[0].value)/100000
+    //                if(that.laging==0){
+    //                  that.laging=30.2693046269
+    //                }
+
+    //             }
+    //           }
+    //       }else{
+    //           that.lnging=120.2282128307
+    //           that.laging=30.2693046269
+    //       }
+    //       var obj={
+    //           ab:that.lnging,
+    //           bc:that.laging
+    //       }
+    //       that.arrs.push(obj)
+    //       console.log(that.arrs)
+    //       that.arrs.forEach((a,b)=>{
+    //          var map = new BMap.Map("allmap");
+    //         setTimeout(function(){
+
+    //               // that.replace1=that.lnging
+    //               // that.replace2=that.laging
+
+    //             var ggPoint = new BMap.Point(a.ab,a.bc); 
+    //             var convertor = new BMap.Convertor();
+
+    //             var pointArr = [];
+    //             pointArr.push(ggPoint);
+
+    //             convertor.translate(pointArr, 1, 5, function (data){
+    //             if(data.status === 0) {
+    //               var marker = new BMap.Marker(data.points[0]);
+    //               var label = new BMap.Label("",{offset:new BMap.Size(20,-10)});
+    //               map.setCenter(data.points[0]);
+    //               console.log(data.points[0])
+    //               that.menga=data.points[0].lng
+    //               that.mengb=data.points[0].lat
+    //               console.log(that.menga)
+    //               console.log(that.mengb)
+    //                var point = new BMap.Point(that.menga,that.mengb)
+    //                 map.centerAndZoom(point, 16);
+    //                 var geoc = new BMap.Geocoder(); 
+    //                 geoc.getLocation(point, function(rs){
+    //                   var addComp = rs.addressComponents;
+    //                   console.log(addComp)
+    //             //  that.newdirectory=addComp.province + "" + addComp.city + "" + addComp.district + "" + addComp.street + "" + addComp.streetNumber
+
+    //             //       if(that.infows.number=="1"){
+    //             //         that.psya=that.infows.address
+    //             //       }else if(that.infows.number==0||that.infows.number==''){
+    //             //         that.psya=that.newdirectory
+    //             //         console.log(that.psya)
+    //             //       }
+    //             //         }); 
+    //                 // that.$axios
+    //                 // .post(
+    //                 // that.httpUrl+"Datapoints/findByDevId",
+    //                 // that.$qs.stringify({
+    //                 //         devId:val
+    //                 //     })
+    //                 // )
+    //                 // .then(message => {
+    //                 //   console.log(message)
+    //                 //   that.infows.address=message.data.detail.address
+    //                 //   that.infows.number=message.data.detail.number
+    //                 //   console.log(that.infows.address)
+
+    //                 })
+    //             }
+    //             })
+    //         })
+    //       })
+
+    //   })
+
+
+    // },
+    // refresh(done) { 	
+    // 	this.timeout = setTimeout(()=>{
+    // 		this.searchclick()
+    // 		this.$refs.my_scroller.finishPullToRefresh()
+    // 	}, 1500)
+    // },
+    // nextPage(index){
+    //   console.log(index)
+    //   this.$router.push({path:'/',query:{id:this.deviceList[index]}})
+    // },
+    // login(){
+    // 	let that=this
+    // 	this.$http({
+    // 		methods:'post',
+    // 		url:this.httpUrl+'',
+    // 		data:Qs.stringify({
+    // 			userName:this.userName,
+    // 			passWord:this.passWord
+    // 		})
+    // 	}).then(function(res){
+    // 		console.log(res)
+    // 	})
+    // },
+    searchclick () {
+      let that = this
+      this.$axios
+        .post(
+          that.httpUrl + "wechatUser/findDevbyUser",
+          this.$qs.stringify({
+            weChatUsePhone: sessionStorage.getItem("weChatUsePhone")
+          })
+        )
+        .then(res => {
+          console.log(res);
+          if (res.data.resCode == 0) {
+            that.deviceList = [];
+            that.deviceLists = [];
+            that.devol = [];
+            for (var i = 0; i < res.data.s.length; i++) {
+              that.zong.push(res.data.s[i])
+              that.deviceList.push(res.data.s[i])
+              that.deviceLists.push(res.data.s[i])
+            }
+            for (var s = 0; s < that.deviceList.length; s++) {
+              that.trueys.push(that.deviceList[s].deviceId)
+              let dataC = {
+                devId: that.trueys
+              }
+              console.log(dataC)
+              this.$axios
+                .post(
+                  that.httpUrl + "devices/accurate",
+                // this.$qs.stringify(dataC)
+              )
+                .then(message => {
+                  console.log(9)
+                  console.log(message);
+                  if (message.data.errno == 0) {
+                    for (var a = 0; a < message.data.data.devices.length; a++) {
+                      for (var n = 0; n < that.deviceList.length; n++) {
+                        if (message.data.data.devices[a].id == that.deviceList[n].deviceId) {
+                          console.log(message.data.data.devices[a].online)
+                          that.deviceList[n].empty = message.data.data.devices[a].online
+                          that.deviceList[n].emptys = message.data.data.devices[a].title
+                          if (that.deviceList[n].empty) {
+                            that.deviceList[n].empty = '在线'
+                            that.pro = 1
+                          } else {
+                            that.deviceList[n].empty = '离线'
+                            that.pro = 0
+                          }
+                          if (that.deviceList[n].empty == undefined) {
+                            that.deviceList[n].empty = '设备异常'
+                            that.pro = 2
+                          }
+                          console.log(that.deviceList[n].empty)
+                        }
+                      }
+                    }
+                  } else {
+                    //  that.pro=2
+                  }
+
+                })
+            }
+
+
+            console.log(that.trueys)
+
+          }
+        })
+
+
+
+    },
+    delec () {
+      // alert('99999')
+      // let that=this;
+      // that.$axios
+      //   .post(
+      //   that.httpUrl+"wechatUser/removeWechatDev",
+      //   this.$qs.stringify({
+      //       weChatUsePhone:sessionStorage.getItem("weChatUsePhone"),
+      //       id:that.math
+      //   })
+      //   )
+      //   .then(res => {
+      //   console.log(res);
+      //     if(res.data.resCode==0){
+      //       alert('成功')
+
+      //     }
+      //   })
+      let that = this;
+      this.$axios
+        .post(
+          that.httpUrl + "wechatUser/removeWechatDev",
+          this.$qs.stringify({
+            weChatUsePhone: sessionStorage.getItem("weChatUsePhone"),
+            id: that.math
+          })
+        )
+        .then(res => {
+          console.log(res);
+          that.bg = false;
+          that.po = false;
+          that.searchclick()
+        })
+    },
+    abc (val) {
+      console.log(val)
+      // localStorage.removeItem('lll')
+      // localStorage.removeItem('ppp')
+      console.log(this.zong)
+      this.$router.push({ path: '/hourstate', query: { id: val.deviceId } })
+    },
+    changeList () {
+      console.log(this.deviceLists)
+      this.deviceList = [];
+      for (var i = 0; i < this.deviceLists.length; i++) {
+        let a = this.value.toUpperCase()
+        if (this.deviceLists[i].emptys.indexOf(a) != -1) {
+          this.deviceList.push(this.deviceLists[i])
+        }
+      }
+    },
+    showClick (item) {
+      console.log(item)
+      this.bg = true;
+      this.isUnAnima = false;
+      this.isAnima = true;
+      this.math = item.id;
+      // MessageBox.confirm('确定要删除么？').then(action => {
+      //   console.log(item)
+      // })
+    },
+    dell (index) {
+      console.log(index)
+      // this.mo=0;
+      this.po = true;
+      this.isAnima = false;
+    },
+    hideClickno () {
+      this.bg = false;
+      this.po = false
+      this.isUnAnima = false;
+      this.isAnima = false;
+    },
+    hideClick () {
+      this.po = false
+      let that = this;
+      this.isAnima = false;
+      this.isUnAnima = true;
+      let t = setTimeout(function () {
+        that.bg = false;
+        clearTimeout(t)
+      }, 250)
+    },
+    saoyisao () {
+      let that = this;
+      this.$axios
+        .get(
+          that.httpUrl + 'scan/getJSSDKTicket?url=' + window.location.href.split('#')[0]
+        )
+        .then(function (message) {
+          console.log(message);
+          wx.config({
+            debug: false, // 开启调试模式,调用的所有api的返回值会在客户端弹出出来，若要查看传入的参数，可以在pc端打开，参数信息会通过log打出，仅在pc端时才会打印。
+            appId: message.data.appid, // 必填，公众号的唯一标识
+            timestamp: message.data.timestamp, // 必填，生成签名的时间戳
+            nonceStr: message.data.nonceStr, // 必填，生成签名的随机串
+            signature: message.data.signature, // 必填，签名，见附录1
+            jsApiList: [message.data.jsApiList] // 必填，需要使用的JS接口列表，所有JS接口列表见附录2
+          });
+        })
+      wx.ready(function () {
+        wx.scanQRCode({
+          needResult: 1, // 默认为0，扫描结果由微信处理，1则直接返回扫描结果，
+          scanType: ["qrCode", "barCode"], // 可以指定扫二维码还是一维码，默认二者都有
+          success: function (res) {
+            let result = res.resultStr; // 当needResult 为 1 时，扫码返回的结果
+            let p1 = result.indexOf("state");
+            let p2 = result.indexOf("redirect_uri");
+            if (result.substring(p2 + 13, p2 + 36) == 'http://cloud.sokeed.com') {
+              // alert(result.substring(p1+6,p1+14))
+              that.$axios
+                .post(
+                  that.httpUrl + "wechatUser/addWechatDev",
+                  that.$qs.stringify({
+                    weChatUsePhone: sessionStorage.getItem("weChatUsePhone"),
+                    deviceId: result.substring(p1 + 6, p1 + 14)
+                  })
+                )
+                .then(res => {
+                  that.$router.push({
+                    path: '/equipitem',
+                    query: { id: result.substring(p1 + 6, p1 + 18) }
+
+                  });
+                  that.searchclick()
+                })
+            }
+
+          }
+        });
+      })
+    }
+  }
+}
+</script>
+
+<!-- Add "scoped" attribute to limit CSS to this component only -->
+<style scoped>
+.hellohead {
+  height: 100%;
+  width: 100%;
+  text-align: center;
+}
+.hello {
+  width: 100%;
+  height: 210px;
+  position: relative;
+  padding-top: 60px;
+  background: #ff5907;
+}
+.hello .mor {
+  font-size: 30px;
+  font-family: 'PingFang-SC-regular';
+  color: #fff;
+}
+.hello .png {
+  width: 100px;
+  height: 100px;
+  margin: 4px auto;
+}
+.hello .png img {
+  width: 100%;
+  height: 100%;
+  z-index: 9999;
+  border-radius: 50%;
+}
+.hello .mor {
+  margin-top: 30px;
+  text-align: center;
+}
+.hello .no {
+  color: #ff0c00;
+}
+.hello p:nth-child(3) {
+  position: absolute;
+  top: 7px;
+  right: 15px;
+  width: 54px;
+  height: 48px;
+}
+.hello p:nth-child(3) img {
+  width: 100%;
+  height: 100%;
+}
+.inputBorder {
+  width: 100%;
+  background: #f8f8f8;
+  position: relative;
+  height: 100px;
+  font-size: 30px;
+  font-family: 'PingFang-SC-regular';
+}
+.li {
+  height: 64px;
+  width: 690px;
+  line-height: 64px;
+  position: absolute;
+  top: 18px;
+  left: 4%;
+  background: #f8f8f8;
+  border-radius: 10px;
+  font-size: 30px;
+  font-family: 'PingFang-SC-regular';
+  color: #d8d8d8;
+}
+input {
+  border: none;
+  outline: none;
+  text-indent: 10%;
+  height: 64px;
+  width: 690px;
+}
+.li p {
+  width: 22px;
+  height: 24px;
+}
+.li p img {
+  width: 100%;
+  height: 100%;
+  vertical-align: middle;
+}
+.li p {
+  position: absolute;
+  top: 3%;
+  left: 3%;
+}
+input[type='text'] {
+  border-radius: 10px;
+}
+/* li{height: 130px;background: #fff;color: #303030;display: flex;justify-content: center;} */
+ul {
+  overflow-y: scroll;
+}
+li {
+  height: 130px;
+  background-color: #fff;
+  margin: 32px 0;
+  display: flex;
+  justify-content: space-between;
+  width: 749px;
+}
+li div {
+  font-size: 30px;
+  font-family: 'PingFang-SC-regular';
+}
+li div img {
+  width: 100%;
+  height: 100%;
+}
+/* li div:nth-child(1){margin:35px -95px 35px 0px;height: 60px;width: 60px;} */
+.innerimg {
+  height: 60px;
+  width: 60px;
+  margin-top: 30px;
+}
+li div:nth-child(1) {
+  height: 100%;
+  width: 20%;
+}
+li div:nth-child(2) {
+  height: 130px;
+  line-height: 60px;
+  width: 60%;
+}
+li div:nth-child(3) {
+  height: 130px;
+  line-height: 130px;
+}
+li div:nth-child(4) {
+  height: 130px;
+  line-height: 140px;
+  width: 10%;
+}
+.flexBoxBG {
+  height: 100%;
+  width: 100%;
+  position: fixed;
+  top: 0;
+  left: 0;
+}
+.flexBoxCT {
+  position: fixed;
+  height: 150px;
+  width: 90%;
+  background-color: #ffffff;
+  bottom: -150px;
+  z-index: 9999999;
+  border-radius: 20px;
+  margin: 0 5%;
+}
+.Feat {
+  width: 100%;
+  margin: auto;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-size: 30px;
+}
+.positions {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  background: rgba(108, 108, 108, 0.4);
+}
+.box {
+  font-size: 30px;
+  width: 70%;
+  margin: 40% 15%;
+  text-align: center;
+  height: 260px;
+  line-height: 130px;
+  z-index: 99;
+}
+.box > p:nth-of-type(1) {
+  border-bottom: 1px solid #cccccc;
+  font-size: 32px;
+  line-height: 1.733333rem;
+  background: #fff;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+}
+.box > p:nth-of-type(2) {
+  display: flex;
+  justify-content: space-around;
+  font-size: 32px;
+  line-height: 1.733333rem;
+  background: #fff;
+  border-bottom-left-radius: 10px;
+  border-bottom-right-radius: 10px;
+}
+.anima {
+  animation: mymove1 0.25s infinite;
+  -webkit-animation: mymove1 0.25s 1; /*Safari and Chrome*/
+  bottom: 10px;
+}
+.flexBoxCT p:nth-child(1) {
+  border-bottom: 1px solid rgb(248, 246, 246);
+}
+.Feat {
+  width: 100%;
+  height: 50%;
+  line-height: 75px;
+  text-align: center;
+}
+@keyframes mymove1 {
+  from {
+    bottom: -100px;
+  }
+  to {
+    bottom: 10px;
+  }
+}
+
+@-webkit-keyframes mymove1 {
+  from {
+    bottom: -100px;
+  }
+  to {
+    bottom: 10px;
+  }
+}
+
+.unAnima {
+  animation: mymove2 0.25s infinite;
+  -webkit-animation: mymove2 0.25s 1; /*Safari and Chrome*/
+  bottom: -300px;
+}
+@keyframes mymove2 {
+  from {
+    bottom: 10px;
+  }
+  to {
+    bottom: -100px;
+  }
+}
+
+@-webkit-keyframes mymove2 {
+  from {
+    bottom: 10px;
+  }
+  to {
+    bottom: -100px;
+  }
+}
+
+.animaBg {
+  display: block;
+}
+@keyframes mymove3 {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@-webkit-keyframes mymove3 {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.unAnimaBg {
+  display: none;
+}
+@keyframes mymove4 {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@-webkit-keyframes mymove4 {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+/* .model{position: fixed;top:0;bottom: 0;left: 0;right: 0;background: rgba(108,108,108,0.5)} */
+.api {
+  width: 65px;
+}
+.positions {
+  z-index: 96;
+}
+.flexBoxBG {
+  z-index: 9;
+}
+.deleteimg {
+  height: 32%;
+  width: 14% !important;
+}
+</style>

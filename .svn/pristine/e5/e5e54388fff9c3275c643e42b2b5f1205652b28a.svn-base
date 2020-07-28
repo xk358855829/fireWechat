@@ -1,0 +1,13 @@
+// export function name(params) {
+
+// }
+import Vue from 'vue';
+Vue.filter('afilter', val => {
+	console.log(val);
+  if (val=='1') {
+    val = '正常'
+  } else {
+    val = '异常'
+  }
+  return val
+})

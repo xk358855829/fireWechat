@@ -1,0 +1,29 @@
+
+
+/* 覆盖mint-ui的primary颜色，改为自己UI的主题色 */
+
+
+.mint-switch-input:checked + .mint-switch-core {
+  border-color: #4cd964;
+  background-color:#4cd964;
+}
+.mint-switch-core{
+  width: 100px;
+  height: 60px;
+  border-radius: 30px;
+}
+.mint-switch-core::after {
+  width: 60px;
+  height: 60px;
+  background-color: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .4);
+  border-radius: 30px;
+}
+.mint-switch-label {
+  margin-left: 20px;
+  display: inline-block;
+}
+.mint-switch-input:checked + .mint-switch-core::after {
+  -webkit-transform: translateX(40px);
+          transform: translateX(40px);
+}

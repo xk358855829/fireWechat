@@ -1,0 +1,17 @@
+// export function name(params) {
+
+// }
+import Vue from 'vue';
+import axios from 'axios'
+import Qs from 'qs'
+
+Vue.filter('afilter', val => {
+	console.log(val);
+  if (val=='1') {
+    val = '异常'
+  } else {
+    val = '正常'
+  }
+  return val
+})
+export const address = data => axios.post('http://39.104.102.213:8796/devices/accurate', Qs.stringify(data))

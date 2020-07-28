@@ -1,0 +1,97 @@
+<template>
+  <div class="inputBorder">
+    <div class="li">
+      <p>
+        <img src="../../static/image/fang.png"
+             alt="">
+      </p>
+      <input type="text"
+             v-model="search"
+             @input="serach($event)"
+             placeholder="请输入设备编号" />
+      <span>
+        <img src="../../static/image/liebiao.png"
+             alt=""
+             @click="excle"
+             style="width:20px;height:20px;vertical-align: middle;">
+      </span>
+    </div>
+  </div>
+</template>
+<script>
+export default {
+  props: ['deviceList'],
+  data () {
+    return {
+      search: '',
+      lng: '',
+      lat: '',
+      changmap: false,
+      obj: Object
+    }
+  },
+  methods: {
+    excle () {
+      this.$emit('chools', this.changmap)
+    },
+    serach (val) {
+      console.log(this.deviceList)
+      this.deviceList.forEach(a => {
+        if (a.emptys == this.search) {
+          console.log(a.amendLongitude)
+          this.lng = a.amendLongitude
+          this.lat = a.amendLatitude
+          this.obj = {
+            a: this.lng,
+            b: this.lat,
+            c: this.search
+          }
+
+        }
+      })
+      console.log(this.obj)
+
+      this.$emit('serchid', this.obj)
+
+
+    }
+  }
+}
+</script>
+<style scoped>
+.inputborder {
+  width: 100%;
+  background: #f8f8f8;
+  position: relative;
+  height: 1.333333rem;
+  font-size: 0.4rem;
+  font-family: 'PingFang-SC-regular';
+}
+.li {
+  height: 0.853333rem;
+  width: 9.2rem;
+  line-height: 0.853333rem;
+  position: absolute;
+  top: 0.24rem;
+  left: 4%;
+  background: #f8f8f8;
+  border-radius: 0.133333rem;
+  font-size: 0.4rem;
+  font-family: 'PingFang-SC-regular';
+  color: #d8d8d8;
+}
+.li p {
+  position: absolute;
+  top: 3%;
+  left: 3%;
+  width: 0.293333rem;
+  height: 0.32rem;
+}
+input {
+  border: none;
+  outline: none;
+  text-indent: 10%;
+  height: 0.853333rem;
+  width: 8rem;
+}
+</style>
